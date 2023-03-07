@@ -1,0 +1,42 @@
+{
+  "persona": {
+    "Abaddon": {
+      "inherits": "Curse",
+      "item": "Megaton Raid Belt",
+      "itemr": "God's Hand Belt",
+      "level": 75,
+      "arcana": "Judgement",
+      "elems": [
+        "ab",
+        "ab",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "-",
+        "rs",
+        "ab"
+      ],
+      "skills": {
+        "Mabufudyne": 0,
+        "Megaton Raid": 0,
+        "Enduring Soul": 0,
+        "Flash Bomb": 78,
+        "Ailment Boost": 79,
+        "Absorb Phys": 80,
+        "Gigantomachia": 81
+      },
+      "stats": [
+        51,
+        42,
+        58,
+        38,
+        43
+      ],
+      "trait": "Mouth of Savoring",
+      "area": "Da'at",
+      "floor": "All"
+    }
+  }
+}
