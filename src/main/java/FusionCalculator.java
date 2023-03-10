@@ -1,20 +1,16 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class FusionCalculator {
 
     //hash table of Arcana:  to a list of personas sorted by the level of the personas
-    Hashtable<String, List<Persona>> personaTable = new Hashtable<String, List<Persona>>();
-
+    Hashtable<String, List<Persona>> arcanaToPersona = new Hashtable<String, List<Persona>>();
     Map<String, Persona> stringPersonaMap = new Hashtable<>();
 
     public FusionCalculator() throws IOException {
@@ -26,38 +22,34 @@ public class FusionCalculator {
             stringBuilder.append(line);
         }
 
-
-        //TODO: try to use JSONParser here
-
-        JSONObject jsonObject = new JSONObject(stringBuilder.toString());
-        jsonObject = new JSONObject(jsonObject.get("personas").toString());
-        System.out.println(jsonObject);
-
-        Map<String, Object> test = jsonObject.toMap();
-        for( String key: test.keySet())
-        {
-            System.out.println(key);
-            //String isJson = test.get(key).toString().replaceAll(  "(?<== ?)(?![ \\{\\[])(.+?)(?=,|})", "\"$1\"");
-            System.out.println(test.get(key).toString());
-            //System.out.println(isJson);
-        }
-
-
-
         ObjectMapper objectMapper = new ObjectMapper();
         //objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        JSONObject jsonObject = new JSONObject(stringBuilder.toString());
+        jsonObject = new JSONObject(jsonObject.get("personas").toString());
+        //System.out.println(jsonObject);
 
-        try {
+        Map<String, Object> test = jsonObject.toMap();
 
-            for(String key: test.keySet()){
 
-                System.out.println(test.get(key));
-                Persona persona = objectMapper.readValue(test.get(key).toString(),Persona.class);
+        for( String key: test.keySet())
+        {
+            Persona persona = objectMapper.readValue(jsonObject.get(key).toString(),Persona.class);
+            persona.setName(key); //setting the name outside because it not in a key: value field within the json
+            String arcana = persona.getArcana();
+            System.out.println(persona);
+
+            //add the persona into the map data -- this is temporary and will change in the future to make it better
+            stringPersonaMap.put(key,persona);
+
+            if(arcanaToPersona.contains(arcana)){
+                List<Persona> personaList = arcanaToPersona.get(arcana);
+                personaList.add(persona);
+                Collections.sort(personaList,new sortByPersonaLevel());
+                arcanaToPersona.put(arcana, personaList);
             }
-            //Persona persona = objectMapper.readValue(stringBuilder.toString(), Persona[].class);
-            //System.out.println(personas);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            else{
+                arcanaToPersona.put(arcana, Arrays.asList(persona));
+            }
         }
     }
 
@@ -98,7 +90,7 @@ public class FusionCalculator {
     private int calculatetier(Persona p){
         String arcana = p.getArcana();
 
-        List<Persona>  personaList = personaTable.get(arcana);
+        List<Persona>  personaList = arcanaToPersona.get(arcana);
 
         int tier = 0;
         for( Persona each: personaList){
