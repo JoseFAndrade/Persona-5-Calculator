@@ -35,7 +35,7 @@
     "Judgement":[-1,-1,1,-1,1,1,-1,-1]
   },
 
-  "ArcanafusionAracana" : [{"source": ["Fool",       "Fool"        ], "result": "Fool"        },
+  "ArcanafusionArcana" : [{"source": ["Fool",       "Fool"        ], "result": "Fool"        },
 {"source": ["Fool",       "Magician"    ], "result": "Death"       },
 {"source": ["Fool",       "Priestess"   ], "result": "Moon"        },
 {"source": ["Fool",       "Empress"     ], "result": "Hanged Man"  },
