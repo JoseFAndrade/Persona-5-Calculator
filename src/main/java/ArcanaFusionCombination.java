@@ -1,5 +1,7 @@
 import java.util.Arrays;
 
+
+//Model?
 public class ArcanaFusionCombination {
     String result;
     String source[];
