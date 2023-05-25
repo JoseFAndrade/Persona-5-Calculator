@@ -1,6 +1,6 @@
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -14,18 +14,56 @@ public class FusionCalculator {
     Map<String, List<Persona>> arcanaToPersona = new Hashtable<>();
     Map<String, Persona> stringPersonaMap = new Hashtable<>();
 
-
     //a table that contains the combination rules between arcana types for fast lookup times
     Map<String, Map<String, String>> arcanaToArcanaFusion = new Hashtable<>();
 
     //this map will contain a Key: Persona to Value: materials required to create it
     Map<String, List<String>> specialFusions = new Hashtable<>();
 
+
+    //list of treasure demons -> we can use .indexOf to find out what the index is in order to go through the chart
+    List<String> treasureDemonArray;
+
+    //keep track of the chart
+    Map<String, List<Integer>> treasureDemonFusionChart  = new Hashtable<>();
+
+
     public FusionCalculator() throws IOException {
 
         readPersonaInformation("./Data/Personas.json");
         readPersonaRules("./Data/Rules.json");
         readSpecialFusions("./Data/Rules.json");
+        readTreasureDemonRules("./Data/Rules.json");
+    }
+
+    private void readTreasureDemonRules(String file) throws IOException{
+
+        // obtain the names and set them in the list
+
+        StringBuilder stringBuilder = readFromFile(file);
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        JSONObject jsonObject = new JSONObject(stringBuilder.toString());
+
+        String treasureDemonJSON = jsonObject.get("rarePersona").toString();
+        String[] treasureDemonList = objectMapper.readValue(treasureDemonJSON, String[].class);
+        treasureDemonArray = new ArrayList<>(Arrays.asList(treasureDemonList));
+
+        // time to obtain the chart and insert it into a map
+        //this will be in a JSON object instead because it's not easily indexed by using an object mapper
+        JSONObject treasureDemonChartJSON = new JSONObject(jsonObject.get("rareCombos").toString());
+
+        for(String key: treasureDemonChartJSON.keySet()){
+            ArrayList<Integer> value = new ArrayList<>();
+            //get a temp JSON array of Object and turn them into Integers because I know that they will always be convertable
+
+            JSONArray temp = (JSONArray) treasureDemonChartJSON.get(key);
+            for(Object each: temp){
+                value.add((Integer) each);
+            }
+
+            this.treasureDemonFusionChart.put(key, value );
+        }
     }
 
     private void readSpecialFusions(String file) throws IOException{
@@ -40,12 +78,67 @@ public class FusionCalculator {
         SpecialFusion[] advancedFusionList = objectMapper.readValue(advancedFusionJSON, SpecialFusion[].class);
 
         for(SpecialFusion each: advancedFusionList){
-            System.out.println(each);
+            specialFusions.put( each.getResult(), new ArrayList<>(Arrays.asList(each.getSources())) );
+        }
+    }
+
+    public void testerFunction(){
+        Persona arsene = new Persona();
+        arsene.setLevel(9);
+        arsene.setArcana("Fool");
+        arsene.setName("Arsène");
+
+        TreasureDemon treasureDemon = new TreasureDemon();
+        treasureDemon.setName("Regent");
+
+        combineTreasureToPersona(arsene, treasureDemon);
+    }
+
+    //todo This function at the moment doesn't seem to be working for any values of change by that is 0
+    //todo persona tier is working as intended
+    /**
+     * Fusion between a treasure demon and regular persona. The level of personas matter here and I need to make changes
+     * to the default arcana list for that tier.
+     */
+
+    //todo Need to test out some theories about the way that tiers work | need to launch the game and test this out
+    //TODO if the level of the persona ends up the same level as the higher persona -> means it reaches the same tier
+    //todo but does that mean that the old tier now doesn't have any personas? or does it get broken down and the tiers shift?
+    //todo for now the code will assume that the tier list does not shift down if one is empty
+    private void combineTreasureToPersona(Persona persona, TreasureDemon treasureDemon ){
+
+        //will always make a persona of the same tier
+        Integer treasureDemonIndex = this.treasureDemonArray.indexOf(treasureDemon.getName());
+        Integer changeBy = this.treasureDemonFusionChart.get("Fool").get(treasureDemonIndex);
+        System.out.println("change by: " + changeBy);
+        Integer personaTier = calculateTier(persona,true);
+        System.out.println("persona tier: " + personaTier);
+        Integer finalTier = personaTier + changeBy;
+
+        //make a deep copy so we don't modify the default
+        List<Persona> personaList = new ArrayList<>(arcanaToPersona.get(persona.arcana));
+
+        //will now need to go through the list and make some sort of tier changes within it
+        //todo Idea numero uno: Make it so that you replace the persona within the list to a null if the tiers are not the same
+        int index = 0;
+
+        //todo change this to a while statement
+        for(Persona eachPersona: personaList){
+            if( eachPersona.name.equals(persona.name) && index != personaTier){
+                break;
+            }
+            index++;
         }
 
+        //need to replace the same persona object with null -> this will remove that specific tier
+        personaList.set(index, null);
 
-        //do I leave it in list form or do I put it into a Map?
 
+        //todo change this because it means it will not be as simple as just getting the persona
+        Persona target = personaList.get(finalTier);
+        System.out.println(target);
+
+        //System.out.println(arcanaToPersona.get("Fool"));
 
     }
 
@@ -96,6 +189,7 @@ public class FusionCalculator {
         {
             Persona persona = objectMapper.readValue(jsonObject.get(key).toString(),Persona.class);
             persona.setName(key); //setting the name outside because it is not within the value (json)
+            //System.out.println(key);
             //System.out.println(persona);
 
             //add the persona into the map data -- this is temporary and will change in the future to make it better
@@ -175,19 +269,30 @@ public class FusionCalculator {
      * @param p A persona
      * @return An integer in the form of 0 indexing of the tier of the persona given
      */
-    private int calculatetier(Persona p){
+    private Integer calculateTier(Persona p, Boolean special){
         String arcana = p.getArcana();
-
-        List<Persona>  personaList = arcanaToPersona.get(arcana);
+        List<Persona> personaList = arcanaToPersona.get(arcana);
 
         int tier = 0;
-        for( Persona each: personaList){
-            if( p.getName().equals(each.getName()))
-                return tier;
-            tier++;
+
+        if(!special){
+            for( Persona each: personaList){
+                if( p.getName().equals(each.getName()))
+                    return tier;
+                tier++;
+            }
         }
-        return -1;
+        else { //this will take levels into account
+            for( Persona each: personaList){
+                if( p.level == each.level || p.level < each.level)
+                    return tier;
+                tier++;
+            }
+        }
+
+        return tier;
     }
+
 
 
 

@@ -7,6 +7,7 @@ public class Main {
 
         try {
             FusionCalculator fusionCalculator = new FusionCalculator();
+            fusionCalculator.testerFunction();
         } catch (IOException e) {
             e.printStackTrace();
         }

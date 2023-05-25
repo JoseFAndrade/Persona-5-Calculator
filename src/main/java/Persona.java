@@ -9,10 +9,10 @@ import java.util.Arrays;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Persona {
+public class Persona implements Comparable<Persona> {
     String name;
     String arcana;
-    String level;
+    int level;
     int[] stats;
     @JsonProperty("elems")
     String[] elements;
@@ -34,7 +34,7 @@ public class Persona {
         return arcana;
     }
 
-    public String getLevel() {
+    public int getLevel() {
         return level;
     }
 
@@ -68,7 +68,7 @@ public class Persona {
         this.arcana = arcana;
     }
 
-    public void setLevel(String level) {
+    public void setLevel(int level) {
         this.level = level;
     }
 
@@ -107,11 +107,16 @@ public class Persona {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("The persona name is: %s\n",this.name));
+        sb.append(String.format("\nThe persona name is: %s\n",this.name));
         sb.append(String.format("Inherits: %s.\tLevel: %s.\tAracana: %s.\tTrait: %s.\n",this.inherits,this.level,this.arcana,this.trait));
         sb.append(String.format("Item: %s.\tAlarm Item: %s\n",this.item,this.alarmItem));
         sb.append(String.format("Elements: %s\nSkills: %s\nStats: %s\n", Arrays.toString(this.elements),this.skills,Arrays.toString(this.stats)));
 
         return sb.toString();
+    }
+
+    @Override
+    public int compareTo(Persona o) {
+        return this.level - o.level;
     }
 }
