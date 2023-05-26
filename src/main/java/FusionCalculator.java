@@ -82,66 +82,6 @@ public class FusionCalculator {
         }
     }
 
-    public void testerFunction(){
-        Persona arsene = new Persona();
-        arsene.setLevel(9);
-        arsene.setArcana("Fool");
-        arsene.setName("Arsène");
-
-        TreasureDemon treasureDemon = new TreasureDemon();
-        treasureDemon.setName("Regent");
-
-        combineTreasureToPersona(arsene, treasureDemon);
-    }
-
-    //todo This function at the moment doesn't seem to be working for any values of change by that is 0
-    //todo persona tier is working as intended
-    /**
-     * Fusion between a treasure demon and regular persona. The level of personas matter here and I need to make changes
-     * to the default arcana list for that tier.
-     */
-
-    //todo Need to test out some theories about the way that tiers work | need to launch the game and test this out
-    //TODO if the level of the persona ends up the same level as the higher persona -> means it reaches the same tier
-    //todo but does that mean that the old tier now doesn't have any personas? or does it get broken down and the tiers shift?
-    //todo for now the code will assume that the tier list does not shift down if one is empty
-    private void combineTreasureToPersona(Persona persona, TreasureDemon treasureDemon ){
-
-        //will always make a persona of the same tier
-        Integer treasureDemonIndex = this.treasureDemonArray.indexOf(treasureDemon.getName());
-        Integer changeBy = this.treasureDemonFusionChart.get("Fool").get(treasureDemonIndex);
-        System.out.println("change by: " + changeBy);
-        Integer personaTier = calculateTier(persona,true);
-        System.out.println("persona tier: " + personaTier);
-        Integer finalTier = personaTier + changeBy;
-
-        //make a deep copy so we don't modify the default
-        List<Persona> personaList = new ArrayList<>(arcanaToPersona.get(persona.arcana));
-
-        //will now need to go through the list and make some sort of tier changes within it
-        //todo Idea numero uno: Make it so that you replace the persona within the list to a null if the tiers are not the same
-        int index = 0;
-
-        //todo change this to a while statement
-        for(Persona eachPersona: personaList){
-            if( eachPersona.name.equals(persona.name) && index != personaTier){
-                break;
-            }
-            index++;
-        }
-
-        //need to replace the same persona object with null -> this will remove that specific tier
-        personaList.set(index, null);
-
-
-        //todo change this because it means it will not be as simple as just getting the persona
-        Persona target = personaList.get(finalTier);
-        System.out.println(target);
-
-        //System.out.println(arcanaToPersona.get("Fool"));
-
-    }
-
     private void readPersonaRules(String file) throws IOException{
         StringBuilder stringBuilder = readFromFile(file);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -234,6 +174,104 @@ public class FusionCalculator {
         return stringBuilder;
     }
 
+    //---------------------------------------------------------------------------------------------------------
+
+    public void testerFunction(){
+        Persona arsene = new Persona();
+        arsene.setLevel(9);
+        arsene.setArcana("Fool");
+        arsene.setName("Arsène");
+
+        TreasureDemon treasureDemon = new TreasureDemon();
+        treasureDemon.setName("Regent");
+
+        combineTreasureToPersona(arsene, treasureDemon);
+
+        Persona pixie = new Persona();
+        pixie.setLevel(16);
+        pixie.setArcana("Fool");
+
+        Persona obariyon = new Persona();
+        obariyon.setLevel(8);
+        obariyon.setArcana("Fool");
+
+        combinePersonaToPersona(pixie,obariyon);
+    }
+
+
+    /**
+     * Fusion between a treasure demon and regular persona. The level of personas matter here and I need to make changes
+     * to the default arcana list for that tier.
+     */
+
+    //todo Need to test out some theories about the way that tiers work | need to launch the game and test this out
+    //TODO if the level of the persona ends up the same level as the higher persona -> means it reaches the same tier
+    //todo but does that mean that the old tier now doesn't have any personas? or does it get broken down and the tiers shift?
+        //todo it will not get broken down the tier will remain tierless
+    //todo for now the code will assume that the tier list does not shift down if one is empty
+    private Persona combineTreasureToPersona(Persona persona, TreasureDemon treasureDemon ){
+
+        //will always make a persona of the same tier
+        Integer treasureDemonIndex = this.treasureDemonArray.indexOf(treasureDemon.getName());
+        Integer changeBy = this.treasureDemonFusionChart.get("Fool").get(treasureDemonIndex);
+        System.out.println("change by: " + changeBy);
+        Integer personaTier = calculateTier(persona,true);
+        System.out.println("persona tier: " + personaTier);
+        Integer finalTier = personaTier + changeBy;
+
+        //make a deep copy so we don't modify the default
+        List<Persona> personaList = new ArrayList<>(arcanaToPersona.get(persona.arcana));
+
+        //will now need to go through the list and make some sort of tier changes within it
+        //todo Idea numero uno: Make it so that you replace the persona within the list to a null if the tiers are not the same
+        int index = 0;
+
+        //todo change this to a while statement
+        for(Persona eachPersona: personaList){
+            if( eachPersona.name.equals(persona.name) && index != personaTier){
+                break;
+            }
+            index++;
+        }
+
+        //need to replace the same persona object with null -> this will remove that specific tier
+        personaList.set(index, null);
+
+        Persona target = personaList.get(finalTier);
+        System.out.println(target);
+
+        return target;
+
+    }
+
+    private Persona combinePersonaToPersona(Persona one, Persona two){
+
+        Persona result = null;
+
+        double formulaResult = fusionFormula(one.level, two.level);
+        System.out.println("Resulting value from putting into the formula is: " + formulaResult);
+
+        String arcana = obtainArcanaFromFusion(one.arcana,two.arcana);
+        System.out.println("Resulting Arcana is: " + arcana);
+
+
+        //need to find the arcana that either matches that level or is the closest to it rounded up
+
+        for( Persona p : this.arcanaToPersona.get(arcana)){
+            if(p.level == formulaResult){
+                result = p;
+                break;
+            }
+            else if ( p.level < formulaResult) {
+                result = p;
+                break;
+            }
+        }
+
+        System.out.println("The persona is:\n" + result);
+        return result;
+    }
+
 
     public Persona calculateFusion(Persona one, Persona two){
 
@@ -258,36 +296,54 @@ public class FusionCalculator {
         return answer;
     }
 
-    public String figureArcana(String arcana1, String arcana2){
+    public String obtainArcanaFromFusion(String arcana1, String arcana2){
+        String value = this.arcanaToArcanaFusion.get(arcana1).get(arcana2);
 
-        return "";
+        if(value == null)
+            value = this.arcanaToArcanaFusion.get(arcana2).get(arcana1);
+
+        return value;
     }
 
+
+    //todo This function might only be used for treasure demon fusions I believe
     /**
      * This function will return the tier of the persona within their arcana type. It will be used for when combining
      * a treasure demon and a regular persona.
      * @param p A persona
+     * @param special A boolean that will determine if the fusion involves a treasure demon
      * @return An integer in the form of 0 indexing of the tier of the persona given
      */
-    private Integer calculateTier(Persona p, Boolean special){
+    public Integer calculateTier(Persona p, Boolean special){
+        if(!special){
+            return calculateTierRegular(p);
+        }
+        return calculateTierSpecial(p);
+    }
+
+    private Integer calculateTierRegular( Persona p){
         String arcana = p.getArcana();
         List<Persona> personaList = arcanaToPersona.get(arcana);
-
         int tier = 0;
 
-        if(!special){
-            for( Persona each: personaList){
-                if( p.getName().equals(each.getName()))
-                    return tier;
-                tier++;
-            }
+        for( Persona each: personaList){
+            if( p.getName().equals(each.getName()))
+                return tier;
+            tier++;
         }
-        else { //this will take levels into account
-            for( Persona each: personaList){
-                if( p.level == each.level || p.level < each.level)
-                    return tier;
-                tier++;
-            }
+
+        return tier;
+    }
+
+    private Integer calculateTierSpecial(Persona p ){
+        String arcana = p.getArcana();
+        List<Persona> personaList = arcanaToPersona.get(arcana);
+        int tier = 0;
+
+        for( Persona each: personaList){
+            if( p.level == each.level || p.level < each.level)
+                return tier;
+            tier++;
         }
 
         return tier;
