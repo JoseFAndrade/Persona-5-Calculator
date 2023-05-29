@@ -277,20 +277,6 @@ public class FusionCalculator {
             }
             index++;
         }
-        /**
-        //need to find the arcana that either matches that level or is the closest to it rounded up
-        for( Persona p : this.arcanaToPersona.get(arcana)){
-            if(p.level == formulaResult){
-                result = p;
-                break;
-            }
-            //this will always happen need to change this
-            else if ( p.level > formulaResult) {
-                result = p;
-                break;
-            }
-        }*/
-
         System.out.println("The persona is:\n" + result);
         return result;
     }
