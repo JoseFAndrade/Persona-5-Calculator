@@ -196,6 +196,16 @@ public class FusionCalculator {
         obariyon.setArcana("Fool");
 
         combinePersonaToPersona(pixie,obariyon);
+
+        Persona p1Test1 = new Persona(); //mitra
+        p1Test1.setLevel(33);
+        p1Test1.setArcana("Temperance");
+
+        Persona p2Test1 = new Persona(); //lilim
+        p2Test1.setLevel(32);
+        p2Test1.setArcana("Devil");
+
+        combinePersonaToPersona(p1Test1,p2Test1);
     }
 
 
@@ -255,18 +265,31 @@ public class FusionCalculator {
         System.out.println("Resulting Arcana is: " + arcana);
 
 
-        //need to find the arcana that either matches that level or is the closest to it rounded up
+        int index = 0;
 
+        //conditional will go false if we find the same level or when we reach the next persona rounded up to the value
+        boolean conditional = false;
+        while( index < this.arcanaToPersona.size() && !conditional ) {
+            Persona p = this.arcanaToPersona.get(arcana).get(index);
+            if (p.level == formulaResult || p.level > formulaResult) {
+                result = p;
+                conditional = true;
+            }
+            index++;
+        }
+        /**
+        //need to find the arcana that either matches that level or is the closest to it rounded up
         for( Persona p : this.arcanaToPersona.get(arcana)){
             if(p.level == formulaResult){
                 result = p;
                 break;
             }
-            else if ( p.level < formulaResult) {
+            //this will always happen need to change this
+            else if ( p.level > formulaResult) {
                 result = p;
                 break;
             }
-        }
+        }*/
 
         System.out.println("The persona is:\n" + result);
         return result;
